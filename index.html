@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MiSide: Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { 
+            margin:0; padding:0; box-sizing:border-box; 
+            user-select:none !important; 
+            -webkit-user-select:none !important;
+            -moz-user-select:none !important;
+            -ms-user-select:none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            font-family:'Quicksand',sans-serif; 
+        }
+        html, body, #game-wrapper, .screen, .click-area, #clickButton, #clickButton img {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            touch-action: manipulation !important;
+        }
+        body { background:#0a0a0a; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        #game-wrapper {
+            width:100%; max-width:420px; height:700px;
+            overflow:hidden; position:relative;
+            background: #120a12;
+            box-shadow: 0 0 60px rgba(255,50,100,0.08);
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+        }
+        
+        .bg-animation {
+            position:absolute;
+            top:0; left:0; width:100%; height:100%;
+            z-index:0;
+            pointer-events:none;
+            overflow:hidden;
+        }
+        .bg-animation span {
+            position:absolute;
+            border-radius:50%;
+            animation: floatBg 18s infinite ease-in-out;
+            opacity:0.4;
+        }
+        .bg-animation span:nth-child(1) { top:10%; left:10%; animation-delay:0s; width:120px; height:120px; background:radial-gradient(circle, rgba(255,50,100,0.12) 0%, transparent 70%); }
+        .bg-animation span:nth-child(2) { top:25%; right:10%; animation-delay:3s; width:80px; height:80px; background:radial-gradient(circle, rgba(255,80,150,0.10) 0%, transparent 70%); }
+        .bg-animation span:nth-child(3) { bottom:15%; left:15%; animation-delay:6s; width:150px; height:150px; background:radial-gradient(circle, rgba(255,30,80,0.08) 0%, transparent 70%); }
+        .bg-animation span:nth-child(4) { bottom:30%; right:5%; animation-delay:9s; width:60px; height:60px; background:radial-gradient(circle, rgba(255,100,180,0.12) 0%, transparent 70%); }
+        .bg-animation span:nth-child(5) { top:55%; left:5%; animation-delay:12s; width:100px; height:100px; background:radial-gradient(circle, rgba(255,50,100,0.09) 0%, transparent 70%); }
+        .bg-animation span:nth-child(6) { top:5%; right:5%; animation-delay:2s; width:50px; height:50px; background:radial-gradient(circle, rgba(255,70,130,0.14) 0%, transparent 70%); }
+        .bg-animation span:nth-child(7) { bottom:5%; left:40%; animation-delay:7s; width:90px; height:90px; background:radial-gradient(circle, rgba(255,40,90,0.10) 0%, transparent 70%); }
+        .bg-animation span:nth-child(8) { top:40%; right:40%; animation-delay:4s; width:70px; height:70px; background:radial-gradient(circle, rgba(255,60,120,0.11) 0%, transparent 70%); }
+        
+        @keyframes floatBg {
+            0%, 100% { transform:translate(0, 0) scale(1); opacity:0.3; }
+            25% { transform:translate(40px, -50px) scale(1.3); opacity:0.7; }
+            50% { transform:translate(-30px, 30px) scale(0.9); opacity:0.4; }
+            75% { transform:translate(50px, 40px) scale(1.2); opacity:0.6; }
+        }
+
+        .screen {
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:20px; transition: opacity 0.6s ease, transform 0.6s ease;
+            backface-visibility:hidden;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            z-index:1;
+        }
+        .screen-hidden { 
+            opacity:0 !important; 
+            pointer-events:none !important; 
+            transform:scale(0.95) !important; 
+        }
+
+        #intro-screen {
+            background: #0a0510; z-index:40; color:#ffffff; text-align:center;
+            animation: introFade 4s ease forwards;
+        }
+        @keyframes introFade {
+            0% { opacity:0; }
+            20% { opacity:1; }
+            80% { opacity:1; }
+            100% { opacity:0; }
+        }
+        #intro-screen h1 { font-size:2.8rem; font-weight:900; letter-spacing:4px; color:#ffffff; text-shadow:none; }
+        #intro-screen p { font-size:1.4rem; font-weight:700; opacity:0.9; margin-top:6px; letter-spacing:3px; color:#ffffff; }
+
+        /* MENU С ФОНОМ mitafon.png */
+        #menu-screen {
+            background: url('mitafon.png') center/cover no-repeat;
+            background-color: #120a12;
+            background-blend-mode: overlay;
+            z-index:20;
+            justify-content:center;
+            gap:10px;
+        }
+        .menu-title { font-size:3.2rem; font-weight:700; color:#ffd9e6; text-shadow:0 0 40px #ff3b7a; letter-spacing:4px; margin-bottom:10px; }
+        .menu-btn {
+            background:rgba(60,30,50,0.5); color:white; padding:14px 28px;
+            border-radius:14px; font-size:1.2rem; font-weight:600; width:200px;
+            text-align:center; cursor:pointer; transition:0.2s;
+            backdrop-filter:blur(8px);
+            border: none !important;
+            box-shadow: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            position:relative;
+            z-index:2;
+        }
+        .menu-btn:active { transform:scale(0.95); background:rgba(80,40,60,0.6); }
+        .menu-btn i { margin-right:10px; }
+        .menu-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+        .menu-row .menu-btn { width:auto; padding:10px 18px; font-size:0.95rem; }
+        .lang-toggle {
+            position:absolute; top:14px; right:14px; 
+            background:rgba(40,20,30,0.4); padding:6px 14px;
+            border-radius:10px; color:white; font-weight:600;
+            font-size:0.85rem; cursor:pointer; backdrop-filter:blur(4px);
+            border: none !important;
+            box-shadow: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            z-index:2;
+        }
+        .menu-coin {
+            position:absolute; top:14px; left:14px;
+            display:flex; align-items:center; gap:6px;
+            background:rgba(0,0,0,0.4); padding:6px 14px 6px 10px;
+            border-radius:30px;
+            backdrop-filter:blur(8px);
+            z-index:50;
+            color:#ffdd77; font-weight:700; font-size:0.95rem;
+            border: none !important;
+        }
+        .menu-coin img { width:22px; height:22px; object-fit:contain; pointer-events:none; }
+        .menu-coin .coin-amount { color:#fff; font-weight:700; }
+
+        #game-screen {
+            background: #120a12; z-index:10; padding:12px 16px; justify-content:flex-start;
+        }
+        .game-header {
+            display:flex; align-items:center; justify-content:space-between; width:100%;
+            background:rgba(40,20,30,0.25); backdrop-filter:blur(8px);
+            padding:8px 16px; border-radius:14px; margin-bottom:6px;
+            border: none !important;
+            z-index:2;
+            position:relative;
+        }
+        .coin-display { display:flex; align-items:center; gap:6px; color:#ffdd77; font-weight:700; font-size:1.1rem; }
+        .coin-display img { width:24px; height:24px; object-fit:contain; pointer-events:none; }
+        .click-counter { color:white; font-weight:700; font-size:1.1rem; background:rgba(60,30,50,0.2); padding:4px 14px; border-radius:10px; }
+        .click-area { 
+            flex:1; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; 
+            position:relative; 
+            overflow:visible;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            z-index:2;
+        }
+        #clickButton { 
+            background:transparent; border:none; cursor:pointer; transition:0.05s; outline:none;
+            width:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            touch-action: manipulation !important;
+            outline: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            position:relative;
+            z-index:2;
+        }
+        #clickButton:focus { outline: 0 !important; }
+        
+        /* Более плавная анимация сгиба */
+        @keyframes tapWobble {
+            0% { transform:scale(1) rotate(0deg) translateX(0); }
+            12% { transform:scale(0.96) rotate(-2.5deg) translateX(-5px); }
+            30% { transform:scale(0.98) rotate(2deg) translateX(4px); }
+            50% { transform:scale(0.97) rotate(-1.2deg) translateX(-2.5px); }
+            70% { transform:scale(0.99) rotate(0.8deg) translateX(1.5px); }
+            85% { transform:scale(0.995) rotate(0.3deg) translateX(0.5px); }
+            100% { transform:scale(1) rotate(0deg) translateX(0); }
+        }
+        #clickButton.tap-anim {
+            animation: tapWobble 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+        }
+        
+        .character-glow {
+            position:absolute;
+            top:50%; left:50%;
+            transform:translate(-50%, -50%);
+            width:100%;
+            height:100%;
+            border-radius:0%;
+            background:radial-gradient(ellipse at center, rgba(255,50,100,0.08) 0%, transparent 70%);
+            pointer-events:none;
+            z-index:1;
+            animation: glowPulse 3.5s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+            0%, 100% { opacity:0.4; transform:translate(-50%, -50%) scale(1); }
+            50% { opacity:0.8; transform:translate(-50%, -50%) scale(1.04); }
+        }
+        
+        #clickButton img { 
+            width:100%;
+            max-width:230px;
+            height:auto;
+            aspect-ratio: 9/14;
+            object-fit:contain;
+            border-radius:0px;
+            background:transparent;
+            box-shadow: none !important;
+            border: none !important;
+            transition:0.05s;
+            pointer-events: none !important;
+            -webkit-user-drag: none !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            position:relative;
+            z-index:2;
+            filter: drop-shadow(0 0 15px rgba(255,50,100,0.12));
+        }
+        .game-footer {
+            display:flex; width:100%; justify-content:space-around;
+            background:rgba(40,20,30,0.2); backdrop-filter:blur(8px);
+            border-radius:14px; padding:6px 0; margin-top:4px;
+            border: none !important;
+            z-index:2;
+            position:relative;
+        }
+        .game-footer .menu-btn { width:auto; padding:6px 14px; font-size:0.85rem; background:rgba(60,30,50,0.2); border: none !important; box-shadow: none !important; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation !important; }
+        .small-restart { background:rgba(60,30,50,0.2); color:white; padding:4px 12px; border-radius:10px; font-weight:600; font-size:0.8rem; cursor:pointer; border: none !important; box-shadow: none !important; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation !important; }
+
+        #shop-screen {
+            background: #120a12; z-index:15; overflow-y:auto; padding:14px 16px;
+            justify-content:flex-start; gap:6px;
+        }
+        #shop-screen h2 { color:#ffd9e6; font-size:1.3rem; margin-bottom:2px; font-weight:700; text-align:center; width:100%; position:relative; z-index:2; }
+        .shop-item {
+            display:flex; align-items:center; justify-content:space-between;
+            background:rgba(255,255,255,0.02); border-radius:8px; padding:4px 10px 4px 4px;
+            width:100%; color:white; gap:6px;
+            border: none !important;
+            position:relative;
+            z-index:2;
+        }
+        .shop-item .left { display:flex; align-items:center; gap:10px; flex:1; }
+        .shop-item .img-wrapper {
+            position:relative;
+            width:44px;
+            flex-shrink:0;
+        }
+        .shop-item .img-wrapper .glow-small {
+            position:absolute;
+            top:50%; left:50%;
+            transform:translate(-50%, -50%);
+            width:100%;
+            height:100%;
+            background:radial-gradient(ellipse at center, rgba(255,50,100,0.05) 0%, transparent 70%);
+            pointer-events:none;
+            z-index:0;
+        }
+        .shop-item img { width:44px; height:auto; aspect-ratio: 9/14; object-fit:contain; border-radius:0px; background:transparent; border: none !important; pointer-events:none; -webkit-user-drag: none !important; position:relative; z-index:1; filter: drop-shadow(0 0 8px rgba(255,50,100,0.06)); }
+        .shop-item .info { font-weight:600; font-size:0.82rem; }
+        .shop-item .power { font-size:0.7rem; opacity:0.5; margin-left:4px; }
+        .shop-item .price { color:#ffdd77; font-weight:700; font-size:0.82rem; margin-right:6px; }
+        .shop-item .price i { margin-right:2px; }
+        .shop-buy { 
+            background:rgba(255,50,100,0.08); border:none; color:white; 
+            border-radius:6px; padding:4px 12px; font-weight:600; 
+            cursor:pointer; font-size:0.75rem;
+            transition:0.2s;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .shop-buy:active { transform:scale(0.92); }
+        .shop-buy:disabled { opacity:0.3; cursor:default; }
+        .shop-buy.owned { background:rgba(100,255,100,0.06); color:#8f8; }
+        .shop-buy.equipped { background:rgba(255,200,50,0.12); color:#ffdd77; }
+        .back-btn { background:rgba(40,20,30,0.2); color:white; padding:6px 18px; border-radius:10px; margin-top:4px; font-weight:600; cursor:pointer; border: none !important; text-align:center; width:100%; box-shadow: none !important; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation !important; z-index:2; position:relative; }
+
+        #achievement-screen {
+            background: #120a12; z-index:25; overflow-y:auto; padding:16px;
+            justify-content:flex-start; gap:4px;
+        }
+        #achievement-screen h2 { color:#ffd9e6; font-size:1.3rem; margin-bottom:2px; font-weight:700; }
+        .ach-item {
+            display:flex; align-items:center; justify-content:space-between;
+            background:rgba(255,255,255,0.02); border-radius:6px; padding:6px 12px;
+            width:100%; color:white; gap:8px;
+            border: none !important;
+        }
+        .ach-item .left { display:flex; align-items:center; gap:8px; flex:1; }
+        .ach-item .ach-name { font-weight:600; font-size:0.82rem; }
+        .ach-item .ach-desc { font-size:0.65rem; opacity:0.4; margin-left:4px; }
+        .ach-item .ach-status { font-size:0.85rem; }
+        .ach-item.done { background:rgba(255,50,100,0.04); }
+
+        #settings-screen {
+            background: #120a12; z-index:25; justify-content:center; gap:12px;
+            padding:20px;
+        }
+        #settings-screen h2 { color:#ffd9e6; font-size:1.3rem; margin-bottom:2px; }
+        .setting-row { display:flex; align-items:center; gap:14px; color:white; font-weight:600; font-size:0.9rem; width:100%; justify-content:space-between; }
+        .setting-row .toggle-btn { background:rgba(40,20,30,0.3); color:white; padding:4px 16px; border-radius:8px; cursor:pointer; font-weight:600; border: none !important; box-shadow: none !important; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation !important; }
+        .color-palette { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:2px 0; }
+        .color-dot { width:26px; height:26px; border-radius:50%; cursor:pointer; transition:0.2s; border:2px solid transparent; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation !important; }
+        .color-dot:hover { transform:scale(1.1); }
+        .color-dot.active { border-color:#ffd9e6; box-shadow:0 0 16px rgba(255,50,100,0.15); }
+        .social-links { display:flex; flex-direction:column; gap:6px; width:100%; margin-top:2px; border-top:1px solid rgba(255,255,255,0.03); padding-top:10px; }
+        .social-links .social-item { display:flex; align-items:center; gap:10px; color:#ffb3c9; font-weight:500; font-size:0.85rem; padding:6px 12px; border-radius:8px; background:rgba(255,255,255,0.015); transition:0.2s; text-decoration:none; -webkit-tap-highlight-color: transparent !important; }
+        .social-links .social-item:hover { background:rgba(255,50,100,0.04); color:#ffd9e6; }
+        .social-links .social-item i { width:20px; font-size:1.1rem; color:#ff7a9e; }
+        .social-links .social-item .social-label { opacity:0.5; font-size:0.7rem; margin-left:auto; }
+
+        #achievement-toast {
+            position:absolute; top:12px; left:50%; transform:translateX(-50%) translateY(-120%);
+            background:rgba(15,10,25,0.92); padding:10px 26px; border-radius:0 0 10px 10px;
+            color:#ffd9e6; backdrop-filter:blur(20px); z-index:99;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5); text-align:center; opacity:0;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events:none; display:flex; align-items:center; justify-content:center;
+            gap:12px; min-height:44px; min-width:260px; max-width:92%; border: none !important;
+        }
+        #achievement-toast .toast-icon { font-size:1.3rem; flex-shrink:0; }
+        #achievement-toast .toast-text { display:flex; flex-direction:column; align-items:flex-start; flex:1; }
+        #achievement-toast .toast-title { font-weight:700; font-size:0.9rem; letter-spacing:0.2px; color:#fff; }
+        #achievement-toast .toast-desc { font-size:0.65rem; opacity:0.4; font-weight:400; margin-top:0px; }
+        #achievement-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        .float-effect {
+            position:absolute; pointer-events:none; font-weight:900;
+            text-shadow:0 0 30px rgba(255,50,100,0.3);
+            animation: floatUp 0.9s ease-out forwards; z-index:30;
+        }
+        @keyframes floatUp { 0% { opacity:1; transform:translateY(0) scale(0.7); } 100% { opacity:0; transform:translateY(-90px) scale(1.3); } }
+        .float-emoji {
+            position:absolute; pointer-events:none; font-size:2rem;
+            animation: floatEmoji 0.8s ease-out forwards; z-index:29;
+        }
+        @keyframes floatEmoji { 0% { opacity:1; transform:translateY(0) scale(0.4) rotate(0deg); } 100% { opacity:0; transform:translateY(-110px) scale(1.4) rotate(25deg); } }
+
+        @media (max-width:440px) { #game-wrapper { height:100vh; max-height:780px; } }
+        
+        .menu-btn, .lang-toggle, .small-restart, .back-btn, .toggle-btn, .shop-buy, .game-footer, .game-header { border: none !important; box-shadow: none !important; }
+        .shop-item, .ach-item { border: none !important; }
+        #clickButton img, .shop-item img { border: none !important; box-shadow: none !important; border-radius: 0px !important; }
+        #achievement-toast { border: none !important; }
+        .coin-display, .click-counter { border: none !important; }
+        img, button, .menu-btn, .shop-buy, .back-btn, .toggle-btn, .color-dot {
+            -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important;
+            user-select: none !important; -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important;
+        }
+    </style>
+</head>
+<body>
+<div id="game-wrapper">
+    <div class="bg-animation"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div id="intro-screen" class="screen">
+        <h1>MAIHASTO</h1>
+        <p id="introSub">ПРЕДСТАВЛЯЕТ</p>
+    </div>
+
+    <div id="menu-screen" class="screen screen-hidden">
+        <div class="menu-coin" id="menuCoin"><img src="mitacoin.png" alt="$"><span class="coin-amount" id="menuCoinAmount">0</span></div>
+        <div class="menu-title">MiSide</div>
+        <div class="menu-btn" id="playBtn"><i class="fas fa-play"></i> <span id="playLabel">Играть</span></div>
+        <div class="menu-row">
+            <div class="menu-btn" id="shopBtn"><i class="fas fa-store"></i> <span id="shopLabel">Магазин</span></div>
+            <div class="menu-btn" id="achievementMenuBtn"><i class="fas fa-trophy"></i> <span id="questsLabel">Задания</span></div>
+            <div class="menu-btn" id="settingsMenuBtn"><i class="fas fa-cog"></i> <span id="settingsLabel">Настройки</span></div>
+        </div>
+        <div class="lang-toggle" id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">Рус</span></div>
+    </div>
+
+    <div id="game-screen" class="screen screen-hidden">
+        <div class="game-header">
+            <div class="coin-display"><img src="mitacoin.png" alt="$"> <span id="coinDisplay">0</span></div>
+            <div class="click-counter"><i class="fas fa-hand-pointer"></i> <span id="clickCounter">0</span></div>
+        </div>
+        <div class="click-area" id="clickArea">
+            <button id="clickButton">
+                <div class="character-glow"></div>
+                <img src="bezumnaya.png" alt="click" id="clickAvatar" draggable="false">
+            </button>
+        </div>
+        <div class="game-footer">
+            <div class="menu-btn" id="backMenuBtn"><i class="fas fa-arrow-left"></i> <span id="menuLabel">Меню</span></div>
+            <div class="small-restart" id="resetBtn"><i class="fas fa-undo-alt"></i> <span id="resetLabel">Рестарт</span></div>
+            <div class="menu-btn" id="shopGameBtn"><i class="fas fa-cart-plus"></i></div>
+        </div>
+    </div>
+
+    <div id="shop-screen" class="screen screen-hidden">
+        <h2><i class="fas fa-store"></i> <span id="shopTitle">МАГАЗИН</span></h2>
+        <div id="shopList"></div>
+        <div class="back-btn" id="shopBackBtn"><i class="fas fa-chevron-left"></i> <span id="shopBackLabel">НАЗАД</span></div>
+    </div>
+
+    <div id="achievement-screen" class="screen screen-hidden">
+        <h2><i class="fas fa-trophy"></i> <span id="questsTitle">ЗАДАНИЯ</span></h2>
+        <div id="achievementList"></div>
+        <div class="back-btn" id="achBackBtn"><i class="fas fa-chevron-left"></i> <span id="achBackLabel">НАЗАД</span></div>
+    </div>
+
+    <div id="settings-screen" class="screen screen-hidden">
+        <h2><i class="fas fa-cog"></i> <span id="settingsTitle">НАСТРОЙКИ</span></h2>
+        <div class="setting-row"><span><i class="fas fa-volume-up"></i> <span id="soundLabel">Звук</span></span><div class="toggle-btn" id="soundToggle"><span id="soundStatus">Вкл</span></div></div>
+        <div class="setting-row"><span><i class="fas fa-language"></i> <span id="langSettingsLabel">Язык</span></span><div class="toggle-btn" id="langToggleSettings"><span id="langSettingsStatus">Рус</span></div></div>
+        <div class="setting-row" style="flex-direction:column; gap:4px; align-items:center;">
+            <span><i class="fas fa-palette"></i> <span id="colorLabel">Цвет</span></span>
+            <div class="color-palette" id="colorPalette">
+                <div class="color-dot active" style="background:#ff3b7a;" data-color="#ff3b7a"></div>
+                <div class="color-dot" style="background:#6b9dff;" data-color="#6b9dff"></div>
+                <div class="color-dot" style="background:#6bff9d;" data-color="#6bff9d"></div>
+                <div class="color-dot" style="background:#ff9d6b;" data-color="#ff9d6b"></div>
+                <div class="color-dot" style="background:#d96bff;" data-color="#d96bff"></div>
+            </div>
+        </div>
+        <div class="social-links">
+            <a href="https://youtube.com/@misidevoid?si=kUmu9enNKi1FNGPs" target="_blank" class="social-item"><i class="fab fa-youtube"></i> <span class="socialName">YouTube канал</span><span class="social-label">перейти</span></a>
+            <a href="https://t.me/maihasto" target="_blank" class="social-item"><i class="fab fa-telegram"></i> <span class="socialName">Telegram</span><span class="social-label">перейти</span></a>
+            <a href="https://pay.cloudtips.ru/p/3bebcf1f" target="_blank" class="social-item"><i class="fas fa-hand-holding-heart"></i> <span class="socialName">Пожертвование</span><span class="social-label">поддержать</span></a>
+        </div>
+        <div class="back-btn" id="settingsBackBtn"><i class="fas fa-chevron-left"></i> <span id="settingsBackLabel">НАЗАД</span></div>
+    </div>
+
+    <div id="achievement-toast">
+        <span class="toast-icon"><i class="fas fa-trophy"></i></span>
+        <div class="toast-text">
+            <span class="toast-title" id="toastTitle">Достижение!</span>
+            <span class="toast-desc" id="toastDesc"></span>
+        </div>
+    </div>
+</div>
+<script>
+    (function(){
+        "use strict";
+        
+        var soundEnabled = true;
+        var audioCtx = null;
+        var clickCooldown = false;
+        var touchActive = false;
+        
+        function getAudioContext() {
+            if (!audioCtx) {
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return null; }
+            }
+            return audioCtx;
+        }
+        
+        function playSound(url) {
+            if (!soundEnabled) return;
+            try {
+                var ctx = getAudioContext();
+                if (!ctx) return;
+                var req = new XMLHttpRequest();
+                req.open('GET', url, true);
+                req.responseType = 'arraybuffer';
+                req.onload = function() {
+                    try {
+                        ctx.decodeAudioData(req.response, function(buffer) {
+                            var source = ctx.createBufferSource();
+                            source.buffer = buffer;
+                            source.connect(ctx.destination);
+                            source.start(0);
+                        }, function(e){});
+                    } catch(e) {}
+                };
+                req.send();
+            } catch(e){}
+        }
+
+        function saveGame() {
+            try { localStorage.setItem('miside_universe_save', JSON.stringify(state)); } catch(e) {}
+        }
+
+        function loadGame() {
+            try {
+                var data = localStorage.getItem('miside_universe_save');
+                if (data) {
+                    var parsed = JSON.parse(data);
+                    Object.assign(state, parsed);
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        var state = {
+            clicks: 0,
+            coins: 0,
+            clickPower: 1,
+            owned: { bezumnaya: true },
+            equipped: 'bezumnaya',
+            achievements: [],
+            totalCoinsEarned: 0,
+            jackpotCount: 0,
+        };
+        var currentSkin = 'bezumnaya.png';
+        var langRu = true;
+
+        var shopItems = [
+            { id: 'mila', nameRu: 'Мила', nameEn: 'Mila', img: 'mila.png', cost: 500, power: 2 },
+            { id: 'sonnaya', nameRu: 'Сонная Мита', nameEn: 'Sleepy Mita', img: 'sonnaya.png', cost: 800, power: 3 },
+            { id: 'korotka', nameRu: 'Коротковолосая Мита', nameEn: 'Short Hair Mita', img: 'korotka.png', cost: 1000, power: 4 },
+            { id: 'dobraya', nameRu: 'Добрая Мита', nameEn: 'Kind Mita', img: 'dobraya.png', cost: 2500, power: 5 },
+            { id: 'kepka', nameRu: 'Кепочка', nameEn: 'Cap Mita', img: 'kepka.png', cost: 5000, power: 6 },
+            { id: 'novuigod', nameRu: 'Новогодняя Мита', nameEn: 'New Year Mita', img: 'novuigod.png', cost: 10000, power: 8 },
+            { id: 'vampire', nameRu: 'Вампирская Мита', nameEn: 'Vampire Mita', img: 'vampire.png', cost: 16666, power: 10 },
+        ];
+
+        var achievementsData = [
+            { id: 'start', nameRu: 'Старт', nameEn: 'Start', descRu: '1 клик', descEn: '1 click' },
+            { id: 'sotka', nameRu: 'Сотка', nameEn: 'Hundred', descRu: '100 кликов', descEn: '100 clicks' },
+            { id: 'tysyacha', nameRu: 'Тысяча', nameEn: 'Thousand', descRu: '1000 кликов', descEn: '1000 clicks' },
+            { id: 'bohat', nameRu: 'Богач', nameEn: 'Rich', descRu: '500 монет', descEn: '500 coins' },
+            { id: 'slitki', nameRu: 'Слитки', nameEn: 'Gold Bars', descRu: '5000 монет', descEn: '5000 coins' },
+            { id: 'para', nameRu: 'Пара', nameEn: 'Pair', descRu: '2 скина', descEn: '2 skins' },
+            { id: 'kollekcia', nameRu: 'Коллекция', nameEn: 'Collection', descRu: '4 скина', descEn: '4 skins' },
+            { id: 'full_set', nameRu: 'Полный набор', nameEn: 'Full Set', descRu: '6 скинов', descEn: '6 skins' },
+            { id: 'all_skins', nameRu: 'Вся коллекция', nameEn: 'All Skins', descRu: '8 скинов', descEn: '8 skins' },
+            { id: 'autoclicker', nameRu: 'Автокликер', nameEn: 'Autoclicker', descRu: '10000 кликов', descEn: '10000 clicks' },
+            { id: 'kripto', nameRu: 'Крипто-магнат', nameEn: 'Crypto-Magnate', descRu: '10000 монет', descEn: '10000 coins' },
+            { id: 'azart', nameRu: 'Азартный', nameEn: 'Lucky', descRu: '10 кушей', descEn: '10 jackpots' },
+            { id: 'fan', nameRu: 'MiSide-фан', nameEn: 'MiSide Fan', descRu: '25000 кликов', descEn: '25000 clicks' },
+            { id: 'master', nameRu: 'Мастер', nameEn: 'Master', descRu: '50000 кликов', descEn: '50000 clicks' },
+            { id: 'ultra', nameRu: 'Ультра-кликер', nameEn: 'Ultra Clicker', descRu: '100000 кликов', descEn: '100000 clicks' },
+            { id: 'elita', nameRu: 'Элита', nameEn: 'Elite', descRu: '200000 кликов', descEn: '200000 clicks' },
+            { id: 'oligarh', nameRu: 'Олигарх', nameEn: 'Oligarch', descRu: '50000 монет', descEn: '50000 coins' },
+            { id: 'magnat', nameRu: 'Магнат', nameEn: 'Magnate', descRu: '250000 кликов', descEn: '250000 clicks' },
+            { id: 'bezum', nameRu: 'Безумный', nameEn: 'Insane', descRu: '500000 кликов', descEn: '500000 clicks' },
+            { id: 'garem', nameRu: 'Гаремщик', nameEn: 'Harem Master', descRu: '1000000 кликов', descEn: '1000000 clicks' },
+        ];
+
+        var achievements = achievementsData.map(function(a) {
+            return {
+                id: a.id, nameRu: a.nameRu, nameEn: a.nameEn, descRu: a.descRu, descEn: a.descEn,
+                check: function(s) {
+                    if (a.id === 'start') return s.clicks >= 1;
+                    if (a.id === 'sotka') return s.clicks >= 100;
+                    if (a.id === 'tysyacha') return s.clicks >= 1000;
+                    if (a.id === 'bohat') return s.coins >= 500;
+                    if (a.id === 'slitki') return s.coins >= 5000;
+                    if (a.id === 'para') return Object.keys(s.owned).length >= 2;
+                    if (a.id === 'kollekcia') return Object.keys(s.owned).length >= 4;
+                    if (a.id === 'full_set') return Object.keys(s.owned).length >= 6;
+                    if (a.id === 'all_skins') return Object.keys(s.owned).length >= 8;
+                    if (a.id === 'autoclicker') return s.clicks >= 10000;
+                    if (a.id === 'kripto') return s.coins >= 10000;
+                    if (a.id === 'azart') return s.jackpotCount >= 10;
+                    if (a.id === 'fan') return s.clicks >= 25000;
+                    if (a.id === 'master') return s.clicks >= 50000;
+                    if (a.id === 'ultra') return s.clicks >= 100000;
+                    if (a.id === 'elita') return s.clicks >= 200000;
+                    if (a.id === 'oligarh') return s.coins >= 50000;
+                    if (a.id === 'magnat') return s.clicks >= 250000;
+                    if (a.id === 'bezum') return s.clicks >= 500000;
+                    if (a.id === 'garem') return s.clicks >= 1000000;
+                    return false;
+                }
+            };
+        });
+
+        var emotions = ['😊', '😍', '🤩', '😆', '🥰', '😎', '🤗', '😘', '😺', '💖', '✨', '🌟', '🔥', '💫', '🌈'];
+
+        var wrapper = document.getElementById('game-wrapper');
+        var intro = document.getElementById('intro-screen');
+        var introSub = document.getElementById('introSub');
+        var menu = document.getElementById('menu-screen');
+        var game = document.getElementById('game-screen');
+        var shopScreen = document.getElementById('shop-screen');
+        var achScreen = document.getElementById('achievement-screen');
+        var settingsScreen = document.getElementById('settings-screen');
+        var menuCoinAmount = document.getElementById('menuCoinAmount');
+        var coinDisplay = document.getElementById('coinDisplay');
+        var clickCounter = document.getElementById('clickCounter');
+        var clickAvatar = document.getElementById('clickAvatar');
+        var clickBtn = document.getElementById('clickButton');
+        var toast = document.getElementById('achievement-toast');
+        var toastTitle = document.getElementById('toastTitle');
+        var toastDesc = document.getElementById('toastDesc');
+
+        var langElements = {
+            introSub: introSub, playLabel: document.getElementById('playLabel'), shopLabel: document.getElementById('shopLabel'),
+            questsLabel: document.getElementById('questsLabel'), settingsLabel: document.getElementById('settingsLabel'),
+            langLabel: document.getElementById('langLabel'), menuLabel: document.getElementById('menuLabel'),
+            resetLabel: document.getElementById('resetLabel'), shopTitle: document.getElementById('shopTitle'),
+            shopBackLabel: document.getElementById('shopBackLabel'), questsTitle: document.getElementById('questsTitle'),
+            achBackLabel: document.getElementById('achBackLabel'), settingsTitle: document.getElementById('settingsTitle'),
+            soundLabel: document.getElementById('soundLabel'), soundStatus: document.getElementById('soundStatus'),
+            langSettingsLabel: document.getElementById('langSettingsLabel'), langSettingsStatus: document.getElementById('langSettingsStatus'),
+            colorLabel: document.getElementById('colorLabel'), settingsBackLabel: document.getElementById('settingsBackLabel'),
+            toastTitle: toastTitle,
+        };
+
+        document.addEventListener('selectstart', function(e) { e.preventDefault(); return false; }, { passive: false });
+        document.addEventListener('dragstart', function(e) { e.preventDefault(); return false; }, { passive: false });
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, { passive: false });
+        
+        var allImages = document.querySelectorAll('img');
+        for (var i = 0; i < allImages.length; i++) {
+            (function(img) {
+                img.addEventListener('dragstart', function(e) { e.preventDefault(); return false; }, { passive: false });
+                img.addEventListener('mousedown', function(e) { e.preventDefault(); return false; }, { passive: false });
+            })(allImages[i]);
+        }
+
+        function showScreen(screen) {
+            var screens = [intro, menu, game, shopScreen, achScreen, settingsScreen];
+            for (var i = 0; i < screens.length; i++) { screens[i].classList.add('screen-hidden'); }
+            screen.classList.remove('screen-hidden');
+        }
+
+        function hideIntroForce() { intro.classList.add('screen-hidden'); menu.classList.remove('screen-hidden'); }
+
+        function updateUI() {
+            menuCoinAmount.textContent = state.coins;
+            coinDisplay.textContent = state.coins;
+            clickCounter.textContent = state.clicks;
+            clickAvatar.src = currentSkin;
+            saveGame();
+        }
+
+        function checkAchievements() {
+            var unlocked = false;
+            for (var i = 0; i < achievements.length; i++) {
+                var ach = achievements[i];
+                if (state.achievements.indexOf(ach.id) === -1 && ach.check(state)) {
+                    state.achievements.push(ach.id);
+                    unlocked = true;
+                    var name = langRu ? ach.nameRu : ach.nameEn;
+                    var desc = langRu ? ach.descRu : ach.descEn;
+                    showAchievement(name, desc);
+                    playSound('achievement.mp3');
+                }
+            }
+            if (unlocked) { updateUI(); renderAchievements(); }
+        }
+
+        var toastTimeout = null;
+        function showAchievement(name, desc) {
+            toastTitle.textContent = name;
+            toastDesc.textContent = desc || '';
+            toast.classList.add('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(function() { toast.classList.remove('show'); }, 2600);
+        }
+
+        function resetGame() {
+            if (!confirm(langRu ? 'Сбросить весь прогресс?' : 'Reset all progress?')) return;
+            state = { clicks:0, coins:0, clickPower:1, owned:{ bezumnaya:true }, equipped:'bezumnaya', achievements:[], totalCoinsEarned:0, jackpotCount:0 };
+            currentSkin = 'bezumnaya.png';
+            updateUI(); renderShop(); renderAchievements(); saveGame();
+        }
+
+        function spawnEffect(x, y, text, isCoin) {
+            isCoin = isCoin || false;
+            var el = document.createElement('div');
+            el.className = 'float-effect';
+            el.textContent = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = isCoin ? '#ffdd77' : '#ffb3d1';
+            el.style.fontSize = isCoin ? '1.4rem' : '1.8rem';
+            el.style.textShadow = isCoin ? '0 0 30px rgba(255,200,50,0.5)' : '0 0 30px rgba(255,50,100,0.3)';
+            wrapper.appendChild(el);
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 900);
+        }
+
+        function spawnEmoji(x, y) {
+            var el = document.createElement('div');
+            el.className = 'float-emoji';
+            el.textContent = emotions[Math.floor(Math.random() * emotions.length)];
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            wrapper.appendChild(el);
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 800);
+        }
+
+        function processClick(clientX, clientY) {
+            if (clickCooldown) return;
+            clickCooldown = true;
+            
+            var rect = clickBtn.getBoundingClientRect();
+            var wrapperRect = wrapper.getBoundingClientRect();
+            var cx = rect.left - wrapperRect.left + rect.width/2;
+            var cy = rect.top - wrapperRect.top + rect.height/2;
+            
+            var addClicks = state.clickPower;
+            state.clicks += addClicks;
+            
+            clickBtn.classList.remove('tap-anim');
+            void clickBtn.offsetWidth;
+            clickBtn.classList.add('tap-anim');
+            
+            var offsetX = (Math.random() - 0.5) * 30;
+            var offsetY = (Math.random() - 0.5) * 20;
+            spawnEffect(cx - 15 + offsetX, cy - 35 + offsetY, '+' + addClicks);
+            spawnEmoji(cx + 30 + Math.random() * 40 + offsetX, cy - 25 + Math.random() * 30 + offsetY);
+            
+            if (Math.random() < 0.15) {
+                var coinBonus = Math.floor(Math.random() * 50) + 1;
+                state.coins += coinBonus;
+                state.totalCoinsEarned += coinBonus;
+                state.jackpotCount += 1;
+                spawnEffect(cx - 25 + offsetX, cy + 25 + offsetY, '+' + coinBonus + ' 🪙', true);
+                playSound('coin.mp3');
+            } else {
+                playSound('tap.mp3');
+            }
+            
+            if (Math.random() < 0.02) { playSound('yamete.mp3'); }
+            
+            updateUI();
+            checkAchievements();
+            
+            setTimeout(function() { clickCooldown = false; }, 100);
+        }
+
+        function handleClick(e) {
+            e.preventDefault();
+            var clientX = e.clientX || 0;
+            var clientY = e.clientY || 0;
+            processClick(clientX, clientY);
+        }
+
+        function handleTouchStart(e) {
+            if (e.touches.length > 0) {
+                var touch = e.touches[0];
+                if (touch) {
+                    e.preventDefault();
+                    processClick(touch.clientX, touch.clientY);
+                }
+            }
+        }
+
+        clickBtn.addEventListener('click', handleClick);
+        clickBtn.addEventListener('touchstart', handleTouchStart, { passive: false });
+        clickBtn.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, { passive: false });
+        clickBtn.addEventListener('dragstart', function(e) { e.preventDefault(); return false; }, { passive: false });
+
+        function equipSkin(id) {
+            if (id === 'bezumnaya') {
+                state.equipped = 'bezumnaya';
+                currentSkin = 'bezumnaya.png';
+                state.clickPower = 1;
+                updateUI();
+                renderShop();
+                return;
+            }
+            var item = shopItems.find(function(i) { return i.id === id; });
+            if (item && state.owned[id]) {
+                state.equipped = id;
+                currentSkin = item.img;
+                state.clickPower = 1 + (item.power || 0);
+                updateUI();
+                renderShop();
+            }
+        }
+
+        function buyItem(item) {
+            if (state.owned[item.id]) {
+                equipSkin(item.id);
+                return;
+            }
+            if (state.coins < item.cost) return;
+            state.coins -= item.cost;
+            state.owned[item.id] = true;
+            state.equipped = item.id;
+            state.clickPower = 1 + item.power;
+            currentSkin = item.img;
+            playSound('buy.mp3');
+            updateUI();
+            renderShop();
+            renderAchievements();
+            checkAchievements();
+            saveGame();
+        }
+
+        function renderShop() {
+            var container = document.getElementById('shopList');
+            container.innerHTML = '';
+            
+            var bezumnaya = document.createElement('div');
+            bezumnaya.className = 'shop-item';
+            var crazyName = langRu ? 'Безумная Мита' : 'Crazy Mita';
+            var isEquipped = state.equipped === 'bezumnaya';
+            bezumnaya.innerHTML = `
+                <div class="left">
+                    <div class="img-wrapper">
+                        <div class="glow-small"></div>
+                        <img src="bezumnaya.png" alt="${crazyName}" draggable="false">
+                    </div>
+                    <div>
+                        <div class="info">${crazyName} <span class="power">+1</span></div>
+                    </div>
+                </div>
+                <button class="shop-buy ${isEquipped ? 'equipped' : 'owned'}" data-id="bezumnaya">
+                    ${isEquipped ? '<i class="fas fa-check"></i> ' + (langRu ? 'НАДЕТО' : 'EQUIPPED') : (langRu ? 'Надеть' : 'Equip')}
+                </button>
+            `;
+            container.appendChild(bezumnaya);
+            var btnBez = bezumnaya.querySelector('.shop-buy');
+            btnBez.addEventListener('click', function() { equipSkin('bezumnaya'); });
+            
+            for (var i = 0; i < shopItems.length; i++) {
+                var item = shopItems[i];
+                var div = document.createElement('div');
+                div.className = 'shop-item';
+                var bought = state.owned[item.id] || false;
+                var equipped = state.equipped === item.id;
+                var priceIcon = '<i class="fas fa-gift" style="color:#ffdd77;"></i>';
+                var itemName = langRu ? item.nameRu : item.nameEn;
+                var buttonText = '';
+                var buttonClass = 'shop-buy';
+                
+                if (bought) {
+                    buttonClass += equipped ? ' equipped' : ' owned';
+                    buttonText = equipped ? (langRu ? 'НАДЕТО' : 'EQUIPPED') : (langRu ? 'Надеть' : 'Equip');
+                } else {
+                    buttonText = langRu ? 'Купить' : 'Buy';
+                }
+                
+                div.innerHTML = `
+                    <div class="left">
+                        <div class="img-wrapper">
+                            <div class="glow-small"></div>
+                            <img src="${item.img}" alt="${itemName}" draggable="false">
+                        </div>
+                        <div>
+                            <div class="info">${itemName} <span class="power">+${item.power}</span></div>
+                            ${!bought ? `<div class="price">${priceIcon} ${item.cost}</div>` : ''}
+                        </div>
+                    </div>
+                    <button class="${buttonClass}" data-id="${item.id}">${buttonText}</button>
+                `;
+                container.appendChild(div);
+                var btn = div.querySelector('.shop-buy');
+                (function(itemId) {
+                    btn.addEventListener('click', function(e) {
+                        var itemData = null;
+                        for (var j = 0; j < shopItems.length; j++) {
+                            if (shopItems[j].id === itemId) {
+                                itemData = shopItems[j];
+                                break;
+                            }
+                        }
+                        if (itemData) buyItem(itemData);
+                    });
+                })(item.id);
+            }
+        }
+
+        function renderAchievements() {
+            var container = document.getElementById('achievementList');
+            container.innerHTML = '';
+            for (var i = 0; i < achievements.length; i++) {
+                var ach = achievements[i];
+                var done = state.achievements.indexOf(ach.id) !== -1;
+                var name = langRu ? ach.nameRu : ach.nameEn;
+                var desc = langRu ? ach.descRu : ach.descEn;
+                var div = document.createElement('div');
+                div.className = 'ach-item' + (done ? ' done' : '');
+                div.innerHTML = `
+                    <div class="left">
+                        <span>${done ? '<i class="fas fa-check-circle" style="color:#8f8;"></i>' : '<i class="fas fa-circle" style="color:#444;"></i>'}</span>
+                        <div><span class="ach-name">${name}</span><span class="ach-desc">${desc}</span></div>
+                    </div>
+                    <span class="ach-status">${done ? '<i class="fas fa-check" style="color:#8f8;"></i>' : '<i class="fas fa-hourglass-half" style="color:#666;"></i>'}</span>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function applyColor(color) {
+            document.querySelector('.menu-title').style.textShadow = '0 0 40px ' + color;
+            var dots = document.querySelectorAll('.color-dot');
+            for (var i = 0; i < dots.length; i++) { dots[i].classList.remove('active'); }
+            var active = document.querySelector('.color-dot[data-color="' + color + '"]');
+            if (active) active.classList.add('active');
+        }
+
+        function updateLang() {
+            var r = langRu;
+            langElements.playLabel.textContent = r ? 'Играть' : 'Play';
+            langElements.shopLabel.textContent = r ? 'Магазин' : 'Shop';
+            langElements.questsLabel.textContent = r ? 'Задания' : 'Quests';
+            langElements.settingsLabel.textContent = r ? 'Настройки' : 'Settings';
+            langElements.langLabel.textContent = r ? 'Рус' : 'En';
+            langElements.menuLabel.textContent = r ? 'Меню' : 'Menu';
+            langElements.resetLabel.textContent = r ? 'Рестарт' : 'Reset';
+            langElements.shopTitle.textContent = r ? 'МАГАЗИН' : 'SHOP';
+            langElements.shopBackLabel.textContent = r ? 'НАЗАД' : 'BACK';
+            langElements.questsTitle.textContent = r ? 'ЗАДАНИЯ' : 'QUESTS';
+            langElements.achBackLabel.textContent = r ? 'НАЗАД' : 'BACK';
+            langElements.settingsTitle.textContent = r ? 'НАСТРОЙКИ' : 'SETTINGS';
+            langElements.soundLabel.textContent = r ? 'Звук' : 'Sound';
+            langElements.soundStatus.textContent = r ? 'Вкл' : 'On';
+            langElements.langSettingsLabel.textContent = r ? 'Язык' : 'Language';
+            langElements.langSettingsStatus.textContent = r ? 'Рус' : 'En';
+            langElements.colorLabel.textContent = r ? 'Цвет' : 'Color';
+            langElements.settingsBackLabel.textContent = r ? 'НАЗАД' : 'BACK';
+            langElements.introSub.textContent = r ? 'ПРЕДСТАВЛЯЕТ' : 'PRESENTS';
+            langElements.toastTitle.textContent = r ? 'Достижение!' : 'Achievement!';
+            
+            var socialNames = document.querySelectorAll('.socialName');
+            var socialLabels = document.querySelectorAll('.social-label');
+            if (socialNames.length >= 3) {
+                socialNames[0].textContent = r ? 'YouTube канал' : 'YouTube Channel';
+                socialNames[1].textContent = r ? 'Telegram' : 'Telegram';
+                socialNames[2].textContent = r ? 'Пожертвование' : 'Donation';
+            }
+            if (socialLabels.length >= 3) {
+                socialLabels[0].textContent = r ? 'перейти' : 'visit';
+                socialLabels[1].textContent = r ? 'перейти' : 'visit';
+                socialLabels[2].textContent = r ? 'поддержать' : 'support';
+            }
+            renderShop();
+            renderAchievements();
+        }
+
+        // Navigation
+        document.getElementById('playBtn').addEventListener('click', function(){ showScreen(game); updateUI(); });
+        document.getElementById('shopBtn').addEventListener('click', function(){ showScreen(shopScreen); renderShop(); });
+        document.getElementById('shopGameBtn').addEventListener('click', function(){ showScreen(shopScreen); renderShop(); });
+        document.getElementById('shopBackBtn').addEventListener('click', function(){ showScreen(menu); });
+        document.getElementById('backMenuBtn').addEventListener('click', function(){ showScreen(menu); });
+        document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+        document.getElementById('achievementMenuBtn').addEventListener('click', function(){ showScreen(achScreen); renderAchievements(); });
+        document.getElementById('achBackBtn').addEventListener('click', function(){ showScreen(menu); });
+
+        document.getElementById('settingsMenuBtn').addEventListener('click', function(){ showScreen(settingsScreen); });
+        document.getElementById('settingsBackBtn').addEventListener('click', function(){ showScreen(menu); });
+
+        document.getElementById('soundToggle').addEventListener('click', function(){
+            soundEnabled = !soundEnabled;
+            this.querySelector('span').textContent = soundEnabled ? (langRu ? 'Вкл' : 'On') : (langRu ? 'Выкл' : 'Off');
+        });
+
+        document.getElementById('langToggle').addEventListener('click', function(){ 
+            langRu = !langRu; updateLang(); 
+            document.querySelector('#langToggleSettings span').textContent = langRu ? 'Рус' : 'En';
+            document.querySelector('#soundToggle span').textContent = soundEnabled ? (langRu ? 'Вкл' : 'On') : (langRu ? 'Выкл' : 'Off');
+        });
+        
+        document.getElementById('langToggleSettings').addEventListener('click', function(){ 
+            langRu = !langRu; updateLang();
+            document.querySelector('#langToggle span').textContent = langRu ? 'Рус' : 'En';
+            document.querySelector('#soundToggle span').textContent = soundEnabled ? (langRu ? 'Вкл' : 'On') : (langRu ? 'Выкл' : 'Off');
+        });
+
+        var colorDots = document.querySelectorAll('.color-dot');
+        for (var d = 0; d < colorDots.length; d++) {
+            (function(dot) {
+                dot.addEventListener('click', function() {
+                    var color = this.dataset.color;
+                    applyColor(color);
+                });
+            })(colorDots[d]);
+        }
+
+        var hasSave = loadGame();
+        if (!state.equipped) { state.equipped = 'bezumnaya'; }
+        if (!state.owned['bezumnaya']) { state.owned['bezumnaya'] = true; }
+        
+        if (state.equipped === 'bezumnaya') {
+            currentSkin = 'bezumnaya.png';
+            state.clickPower = 1;
+        } else {
+            var found = shopItems.find(function(i) { return i.id === state.equipped; });
+            if (found && state.owned[state.equipped]) {
+                currentSkin = found.img;
+                state.clickPower = 1 + found.power;
+            } else {
+                state.equipped = 'bezumnaya';
+                currentSkin = 'bezumnaya.png';
+                state.clickPower = 1;
+            }
+        }
+        
+        setTimeout(function() {
+            hideIntroForce();
+            if (!hasSave) { state.achievements = []; }
+            checkAchievements();
+            updateUI();
+            renderShop();
+            renderAchievements();
+            applyColor('#ff3b7a');
+            updateLang();
+        }, 4200);
+
+        document.addEventListener('click', function(e) {
+            if (!intro.classList.contains('screen-hidden')) { e.stopPropagation(); }
+        });
+
+        updateUI();
+        renderShop();
+        renderAchievements();
+        applyColor('#ff3b7a');
+        updateLang();
+    })();
+</script>
+</body>
+</html>
